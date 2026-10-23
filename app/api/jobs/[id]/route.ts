@@ -11,10 +11,12 @@ export async function PATCH(
 
   const updates: Record<string, unknown> = { status };
 
-  // Auto-purge on completion
-  if (status === 'completed') {
+  // Auto-purge on completion or cancellation
+  if (status === 'completed' || status === 'cancelled') {
     updates.purged = true;
-    updates.fileName = '[PURGED]';
+    updates.fileName = '[PURGED - FILE DELETED]';
+    updates.fileData = null;
+    updates.fileSize = null;
     updates.pin = '****';
   }
 

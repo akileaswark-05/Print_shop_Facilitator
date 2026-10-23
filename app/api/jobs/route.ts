@@ -30,7 +30,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { studentName, fileName, pageCount, printType, sides, copies } = body;
+  const { studentName, fileName, fileData, fileSize, pageCount, printType, sides, copies } = body;
 
   // Calculate cost
   const baseRate = printType === 'color' ? 10 : 2;
@@ -54,6 +54,8 @@ export async function POST(req: NextRequest) {
     token,
     studentName,
     fileName,
+    fileData: fileData || null,
+    fileSize: fileSize || null,
     pageCount,
     printType,
     sides,

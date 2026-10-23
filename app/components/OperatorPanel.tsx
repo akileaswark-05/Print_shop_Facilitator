@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Shield, CheckCircle2, Printer, XCircle, Key, RefreshCw, Lock } from 'lucide-react';
+import { Shield, CheckCircle2, Printer, XCircle, Key, RefreshCw, Lock, FileText, Eye, Download } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { PrintJob, JobStatus } from '@/app/lib/store';
 
@@ -72,6 +72,64 @@ export default function OperatorPanel() {
     }
   };
 
+  const handleViewDocument = (job: PrintJob) => {
+    if (!job.fileData) {
+      alert('Document file is not available or has been purged.');
+      return;
+    }
+    const win = window.open();
+    if (win) {
+      win.document.write(
+        `<html><head><title>${job.fileName} - Document Preview</title><style>body{margin:0;background:#18181b;display:flex;flex-direction:column;align-items:center;height:100vh;overflow:hidden;}iframe{width:100%;height:100%;border:none;}</style></head><body><iframe src="${job.fileData}"></iframe></body></html>`
+      );
+      win.document.close();
+    } else {
+      const a = document.createElement('a');
+      a.href = job.fileData;
+      a.download = job.fileName;
+      a.click();
+    }
+  };
+
+  const handlePrintDocument = (job: PrintJob) => {
+    if (!job.fileData) {
+      alert('Document file is not available or has been purged.');
+      return;
+    }
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.src = job.fileData;
+    document.body.appendChild(iframe);
+    iframe.onload = () => {
+      setTimeout(() => {
+        try {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+        } catch {
+          const win = window.open(job.fileData || '');
+          win?.focus();
+          win?.print();
+        }
+      }, 500);
+    };
+  };
+
+  const handleDownloadDocument = (job: PrintJob) => {
+    if (!job.fileData) {
+      alert('File has been purged.');
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = job.fileData;
+    a.download = job.fileName;
+    a.click();
+  };
+
   // Operator login gate
   if (!authenticated) {
     return (
@@ -133,6 +191,53 @@ export default function OperatorPanel() {
         <span className="text-gray-400">Txn: <span className="text-gray-300 font-mono text-xs">{job.transactionId}</span></span>
       </div>
 
+      {/* Document Access Bar for Operator */}
+      <div className="px-4 py-3 border-b border-gray-800/80 bg-gray-950/40">
+        {job.fileData ? (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-indigo-950/30 border border-indigo-800/40 rounded-xl">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+                <FileText className="w-4 h-4 text-indigo-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-white text-xs font-semibold truncate max-w-[240px]">{job.fileName}</p>
+                <p className="text-indigo-300 text-[11px]">{job.fileSize || 'Attached'} • Ready for printout</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleViewDocument(job)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-indigo-300 hover:text-white text-xs font-medium rounded-lg border border-gray-700 transition-colors"
+                title="Preview document in browser"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                Preview File
+              </button>
+              <button
+                onClick={() => handlePrintDocument(job)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors"
+                title="Send document to physical printer"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                Print File
+              </button>
+              <button
+                onClick={() => handleDownloadDocument(job)}
+                className="p-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg border border-gray-700 transition-colors"
+                title="Download local copy"
+              >
+                <Download className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 p-2.5 bg-gray-900/60 border border-gray-800 rounded-xl text-xs text-gray-400">
+            <Lock className="w-4 h-4 text-gray-500 shrink-0" />
+            <span>🔒 File purged from memory upon completion for student data privacy.</span>
+          </div>
+        )}
+      </div>
+
       {/* Actions */}
       {(job.status === 'pending' || job.status === 'printing' || job.status === 'ready') && (
         <div className="p-4 space-y-3">
@@ -158,16 +263,14 @@ export default function OperatorPanel() {
                 Mark as Ready for Pickup
               </button>
             )}
-            {job.status !== 'cancelled' && (
-              <button
-                onClick={() => updateStatus(job.id, 'cancelled')}
-                disabled={actionLoading[job.id]}
-                className="flex items-center gap-2 bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 px-3 py-2 rounded-lg text-sm transition-colors disabled:opacity-50"
-              >
-                <XCircle className="w-4 h-4" />
-                Cancel Job
-              </button>
-            )}
+            <button
+              onClick={() => updateStatus(job.id, 'cancelled')}
+              disabled={actionLoading[job.id]}
+              className="flex items-center gap-2 bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 px-3 py-2 rounded-lg text-sm transition-colors disabled:opacity-50"
+            >
+              <XCircle className="w-4 h-4" />
+              Cancel Job
+            </button>
           </div>
 
           {/* PIN Verification for Ready jobs */}

@@ -5,6 +5,8 @@ export interface PrintJob {
   token: string;
   studentName: string;
   fileName: string;
+  fileData?: string | null;
+  fileSize?: string | null;
   pageCount: number;
   printType: 'bw' | 'color';
   sides: 'single' | 'double';

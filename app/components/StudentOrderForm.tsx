@@ -17,6 +17,8 @@ interface OrderResult {
 export default function StudentOrderForm() {
   const [studentName, setStudentName] = useState('');
   const [fileName, setFileName] = useState('');
+  const [fileData, setFileData] = useState<string>('');
+  const [fileSize, setFileSize] = useState<string>('');
   const [pageCount, setPageCount] = useState(1);
   const [printType, setPrintType] = useState<'bw' | 'color'>('bw');
   const [sides, setSides] = useState<'single' | 'double'>('single');
@@ -33,21 +35,38 @@ export default function StudentOrderForm() {
   if (sides === 'double') totalCost = totalCost * 0.85;
   totalCost = parseFloat(totalCost.toFixed(2));
 
+  const processFile = (file: File) => {
+    if (!file.name.match(/\.(pdf|docx|txt|png|jpg|jpeg)$/i)) {
+      alert('Only PDF, DOCX, TXT, or Image files are accepted.');
+      return;
+    }
+    setFileName(file.name);
+    const sizeKB = (file.size / 1024).toFixed(1);
+    const sizeFormatted = file.size > 1024 * 1024 
+      ? `${(file.size / (1024 * 1024)).toFixed(2)} MB`
+      : `${sizeKB} KB`;
+    setFileSize(sizeFormatted);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFileData(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleFileDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     const file = e.dataTransfer.files[0];
     if (file) {
-      if (!file.name.match(/\.(pdf|docx)$/i)) return alert('Only PDF and DOCX files are accepted.');
-      setFileName(file.name);
+      processFile(file);
     }
   }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (!file.name.match(/\.(pdf|docx)$/i)) return alert('Only PDF and DOCX files are accepted.');
-      setFileName(file.name);
+      processFile(file);
     }
   };
 
@@ -65,7 +84,16 @@ export default function StudentOrderForm() {
       const res = await fetch('/api/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentName, fileName, pageCount, printType, sides, copies }),
+        body: JSON.stringify({ 
+          studentName, 
+          fileName, 
+          fileData, 
+          fileSize, 
+          pageCount, 
+          printType, 
+          sides, 
+          copies 
+        }),
       });
       const data = await res.json();
       setOrderResult(data);
@@ -97,6 +125,8 @@ export default function StudentOrderForm() {
             setOrderResult(null);
             setStudentName('');
             setFileName('');
+            setFileData('');
+            setFileSize('');
             setPageCount(1);
             setPrintType('bw');
             setSides('single');
@@ -156,20 +186,20 @@ export default function StudentOrderForm() {
                 dragOver ? 'border-indigo-500 bg-indigo-500/10' : 'border-gray-700 hover:border-gray-500 hover:bg-gray-800/50'
               }`}
             >
-              <input ref={fileInputRef} type="file" accept=".pdf,.docx" onChange={handleFileSelect} className="hidden" />
+              <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt,.png,.jpg,.jpeg" onChange={handleFileSelect} className="hidden" />
               {fileName ? (
                 <div className="flex items-center justify-center gap-3">
                   <FileText className="w-8 h-8 text-indigo-400" />
                   <div className="text-left">
                     <p className="text-white font-medium">{fileName}</p>
-                    <p className="text-gray-400 text-sm">Click to change file</p>
+                    <p className="text-gray-400 text-sm">{fileSize ? `Ready to upload (${fileSize}) • ` : ''}Click to change file</p>
                   </div>
                 </div>
               ) : (
                 <>
                   <Upload className="w-8 h-8 text-gray-500 mx-auto mb-3" />
                   <p className="text-gray-300 font-medium">Drop your file here or click to browse</p>
-                  <p className="text-gray-500 text-sm mt-1">PDF or DOCX files only</p>
+                  <p className="text-gray-500 text-sm mt-1">PDF, DOCX, TXT, or Image files</p>
                 </>
               )}
             </div>
