@@ -1,20 +1,21 @@
 import React from 'react';
 import { JobStatus } from '@/app/lib/store';
 
-const badgeConfig: Record<JobStatus | 'purged', { label: string; className: string }> = {
-  pending:   { label: 'Pending',           className: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/40' },
-  printing:  { label: 'In Printing',       className: 'bg-blue-500/20 text-blue-300 border border-blue-500/40' },
-  ready:     { label: 'Ready for Pickup',  className: 'bg-green-500/20 text-green-300 border border-green-500/40' },
-  completed: { label: 'Completed',         className: 'bg-gray-500/20 text-gray-400 border border-gray-500/40' },
-  cancelled: { label: 'Cancelled',         className: 'bg-red-500/20 text-red-400 border border-red-500/40' },
-  purged:    { label: 'Purged',            className: 'bg-gray-600/20 text-gray-500 border border-gray-600/40' },
+const badgeConfig: Record<JobStatus | 'purged', { label: string; dot: string; className: string }> = {
+  pending:   { label: 'Pending in Queue', dot: 'bg-amber-500',   className: 'bg-amber-50 text-amber-800 border-amber-200/80' },
+  printing:  { label: 'Printing Now',     dot: 'bg-blue-600 animate-pulse', className: 'bg-blue-50 text-blue-800 border-blue-200/80' },
+  ready:     { label: 'Ready for Pickup', dot: 'bg-emerald-500', className: 'bg-emerald-50 text-emerald-800 border-emerald-200/80' },
+  completed: { label: 'Completed',        dot: 'bg-slate-400',   className: 'bg-slate-100 text-slate-700 border-slate-200' },
+  cancelled: { label: 'Cancelled',        dot: 'bg-rose-500',    className: 'bg-rose-50 text-rose-700 border-rose-200' },
+  purged:    { label: 'Purged & Claimed', dot: 'bg-slate-400',   className: 'bg-slate-100 text-slate-500 border-slate-200' },
 };
 
 export default function StatusBadge({ status, purged }: { status: JobStatus; purged?: boolean }) {
   const key = purged && status === 'completed' ? 'purged' : status;
   const cfg = badgeConfig[key] || badgeConfig.pending;
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${cfg.className}`}>
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border shadow-2xs ${cfg.className}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
       {cfg.label}
     </span>
   );

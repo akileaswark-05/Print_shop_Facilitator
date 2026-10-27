@@ -27,12 +27,15 @@ export default function PaymentModal({ totalCost, onSuccess, onClose }: PaymentM
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
+      <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-md shadow-xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-800">
-          <h2 className="text-lg font-bold text-white">Complete Payment</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+            <h2 className="text-base font-bold text-slate-900">Campus Digital Checkout</h2>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-200/60 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -41,43 +44,48 @@ export default function PaymentModal({ totalCost, onSuccess, onClose }: PaymentM
           {step === 'form' && (
             <>
               {/* Amount */}
-              <div className="bg-indigo-600/10 border border-indigo-500/30 rounded-xl p-4 mb-6 text-center">
-                <p className="text-gray-400 text-sm">Total Amount</p>
-                <p className="text-3xl font-bold text-white mt-1">&#8377;{totalCost.toFixed(2)}</p>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50/50 border border-blue-200/70 rounded-2xl p-4 mb-5 text-center">
+                <p className="text-slate-600 text-xs font-semibold uppercase tracking-wider">Total Payable Amount</p>
+                <p className="text-3xl font-black text-[#0F2942] mt-0.5">₹{totalCost.toFixed(2)}</p>
+                <p className="text-[11px] text-slate-500 mt-1">Direct student print shop balance / UPI</p>
               </div>
 
               {/* Method Selector */}
-              <div className="flex gap-3 mb-6">
+              <div className="grid grid-cols-2 gap-3 mb-5">
                 <button
                   onClick={() => setMethod('upi')}
-                  className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                    method === 'upi' ? 'border-indigo-500 bg-indigo-600/10 text-white' : 'border-gray-700 text-gray-400 hover:border-gray-600'
+                  className={`flex flex-col items-center gap-1.5 p-3.5 rounded-2xl border text-center transition-all ${
+                    method === 'upi'
+                      ? 'border-[#0F2942] bg-blue-50/40 text-[#0F2942] font-bold shadow-2xs ring-1 ring-[#0F2942]'
+                      : 'border-slate-200 text-slate-600 hover:bg-slate-50 font-medium'
                   }`}
                 >
-                  <Smartphone className="w-6 h-6" />
-                  <span className="text-sm font-medium">UPI</span>
+                  <Smartphone className="w-5 h-5 text-[#0F2942]" />
+                  <span className="text-xs">UPI / QR</span>
                 </button>
                 <button
                   onClick={() => setMethod('card')}
-                  className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                    method === 'card' ? 'border-indigo-500 bg-indigo-600/10 text-white' : 'border-gray-700 text-gray-400 hover:border-gray-600'
+                  className={`flex flex-col items-center gap-1.5 p-3.5 rounded-2xl border text-center transition-all ${
+                    method === 'card'
+                      ? 'border-[#0F2942] bg-blue-50/40 text-[#0F2942] font-bold shadow-2xs ring-1 ring-[#0F2942]'
+                      : 'border-slate-200 text-slate-600 hover:bg-slate-50 font-medium'
                   }`}
                 >
-                  <CreditCard className="w-6 h-6" />
-                  <span className="text-sm font-medium">Card</span>
+                  <CreditCard className="w-5 h-5 text-[#0F2942]" />
+                  <span className="text-xs">Debit / Campus Card</span>
                 </button>
               </div>
 
               {/* UPI Form */}
               {method === 'upi' && (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div>
-                    <label className="block text-sm text-gray-400 mb-1">UPI ID</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">UPI ID (VPA)</label>
                     <input
                       value={upiId}
                       onChange={e => setUpiId(e.target.value)}
-                      placeholder="yourname@upi"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                      placeholder="e.g., student@okaxis or 9876543210@upi"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-900/10 focus:border-[#0F2942] text-sm"
                     />
                   </div>
                 </div>
@@ -85,34 +93,34 @@ export default function PaymentModal({ totalCost, onSuccess, onClose }: PaymentM
 
               {/* Card Form */}
               {method === 'card' && (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div>
-                    <label className="block text-sm text-gray-400 mb-1">Card Number</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Card Number</label>
                     <input
                       value={cardNumber}
                       onChange={e => setCardNumber(e.target.value.replace(/\D/g, '').slice(0, 16))}
-                      placeholder="1234 5678 9012 3456"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                      placeholder="4532 •••• •••• 8821"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-900/10 focus:border-[#0F2942] text-sm tracking-wide font-mono"
                     />
                   </div>
-                  <div className="flex gap-3">
-                    <div className="flex-1">
-                      <label className="block text-sm text-gray-400 mb-1">Expiry</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Expiry</label>
                       <input
                         value={expiry}
                         onChange={e => setExpiry(e.target.value)}
                         placeholder="MM/YY"
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-900/10 focus:border-[#0F2942] text-sm text-center font-mono"
                       />
                     </div>
-                    <div className="w-28">
-                      <label className="block text-sm text-gray-400 mb-1">CVV</label>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">CVV</label>
                       <input
                         value={cvv}
                         onChange={e => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                        placeholder="123"
+                        placeholder="•••"
                         type="password"
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-900/10 focus:border-[#0F2942] text-sm text-center font-mono"
                       />
                     </div>
                   </div>
@@ -121,26 +129,28 @@ export default function PaymentModal({ totalCost, onSuccess, onClose }: PaymentM
 
               <button
                 onClick={handlePay}
-                className="w-full mt-6 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl transition-colors"
+                className="w-full mt-6 bg-[#0F2942] hover:bg-[#1A365D] text-white font-bold py-3.5 rounded-xl shadow-xs transition-all text-sm"
               >
-                Pay &#8377;{totalCost.toFixed(2)}
+                Simulate Payment of ₹{totalCost.toFixed(2)}
               </button>
             </>
           )}
 
           {step === 'processing' && (
-            <div className="flex flex-col items-center py-12 gap-4">
-              <Loader2 className="w-12 h-12 text-indigo-400 animate-spin" />
-              <p className="text-white font-medium">Processing Payment...</p>
-              <p className="text-gray-400 text-sm">Please do not close this window</p>
+            <div className="flex flex-col items-center py-10 gap-3">
+              <Loader2 className="w-10 h-10 text-[#0F2942] animate-spin" />
+              <p className="text-slate-900 font-bold text-base">Authorizing Campus Payment...</p>
+              <p className="text-slate-500 text-xs">Simulating bank gateway response</p>
             </div>
           )}
 
           {step === 'done' && (
-            <div className="flex flex-col items-center py-12 gap-4">
-              <CheckCircle2 className="w-12 h-12 text-green-400" />
-              <p className="text-white font-medium">Payment Successful!</p>
-              <p className="text-gray-400 text-sm">Generating your queue token...</p>
+            <div className="flex flex-col items-center py-10 gap-3">
+              <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                <CheckCircle2 className="w-7 h-7" />
+              </div>
+              <p className="text-slate-900 font-bold text-base">Payment Verified Successfully!</p>
+              <p className="text-slate-500 text-xs">Assigning queue token and estimated wait time...</p>
             </div>
           )}
         </div>

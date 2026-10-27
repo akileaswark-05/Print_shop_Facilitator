@@ -95,10 +95,21 @@ export default function StudentOrderForm() {
           copies 
         }),
       });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server responded with status ${res.status}`);
+      }
+
       const data = await res.json();
       setOrderResult(data);
-    } catch {
-      alert('Failed to create print job. Please try again.');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+        alert('Server is offline! Please ensure PowerShell is open and running "npm run dev".');
+      } else {
+        alert(`Failed to create print job: ${errorMessage}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -107,9 +118,13 @@ export default function StudentOrderForm() {
   if (orderResult) {
     return (
       <div className="max-w-2xl mx-auto py-8 px-4">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-white">Order Confirmed!</h2>
-          <p className="text-gray-400 mt-1">Your print job has been added to the queue</p>
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold px-3 py-1 rounded-full mb-3">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            Order Successfully Placed
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Your Token is Ready!</h2>
+          <p className="text-slate-600 text-sm mt-1">Present your token number and secret PIN at the counter to collect your prints.</p>
         </div>
         <TokenCard
           token={orderResult.token}
@@ -132,9 +147,9 @@ export default function StudentOrderForm() {
             setSides('single');
             setCopies(1);
           }}
-          className="mt-6 w-full max-w-md mx-auto block text-center text-gray-400 hover:text-white text-sm transition-colors"
+          className="mt-6 w-full max-w-md mx-auto block text-center py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-sm rounded-xl border border-slate-300 shadow-2xs transition-colors"
         >
-          ← Place Another Order
+          ← Place Another Print Order
         </button>
       </div>
     );
@@ -151,30 +166,34 @@ export default function StudentOrderForm() {
       )}
 
       <div className="max-w-2xl mx-auto py-8 px-4">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white">New Print Order</h2>
-          <p className="text-gray-400 mt-1">Upload your document and configure print settings</p>
+        <div className="mb-6">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">New Print Order</h2>
+          <p className="text-slate-600 text-sm mt-1">Upload your coursework, calculate accurate pricing, and skip the print shop queue.</p>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Student Name */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-            <label className="flex items-center gap-2 text-white font-medium mb-4">
-              <User className="w-4 h-4 text-indigo-400" />
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs">
+            <label className="flex items-center gap-2 text-slate-900 font-bold text-sm mb-3">
+              <span className="w-7 h-7 rounded-lg bg-blue-50 text-[#0F2942] flex items-center justify-center border border-blue-100">
+                <User className="w-4 h-4" />
+              </span>
               Student Information
             </label>
             <input
               value={studentName}
               onChange={e => setStudentName(e.target.value)}
-              placeholder="Enter your full name"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors"
+              placeholder="e.g., Alex Johnson (Roll / Dept)"
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-900/10 focus:border-[#0F2942] transition-all text-sm font-medium"
             />
           </div>
 
           {/* File Upload */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-            <label className="flex items-center gap-2 text-white font-medium mb-4">
-              <Upload className="w-4 h-4 text-indigo-400" />
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs">
+            <label className="flex items-center gap-2 text-slate-900 font-bold text-sm mb-3">
+              <span className="w-7 h-7 rounded-lg bg-blue-50 text-[#0F2942] flex items-center justify-center border border-blue-100">
+                <Upload className="w-4 h-4" />
+              </span>
               Document Upload
             </label>
             <div
@@ -182,43 +201,58 @@ export default function StudentOrderForm() {
               onDragLeave={() => setDragOver(false)}
               onDrop={handleFileDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
-                dragOver ? 'border-indigo-500 bg-indigo-500/10' : 'border-gray-700 hover:border-gray-500 hover:bg-gray-800/50'
+              className={`border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center cursor-pointer transition-all duration-150 ${
+                dragOver 
+                  ? 'border-[#0F2942] bg-blue-50/50' 
+                  : 'border-slate-300 hover:border-slate-400 bg-slate-50/60 hover:bg-slate-100/50'
               }`}
             >
               <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt,.png,.jpg,.jpeg" onChange={handleFileSelect} className="hidden" />
               {fileName ? (
                 <div className="flex items-center justify-center gap-3">
-                  <FileText className="w-8 h-8 text-indigo-400" />
+                  <div className="w-12 h-12 rounded-xl bg-blue-100/70 border border-blue-200 flex items-center justify-center text-[#0F2942]">
+                    <FileText className="w-6 h-6" />
+                  </div>
                   <div className="text-left">
-                    <p className="text-white font-medium">{fileName}</p>
-                    <p className="text-gray-400 text-sm">{fileSize ? `Ready to upload (${fileSize}) • ` : ''}Click to change file</p>
+                    <p className="text-slate-900 font-bold text-sm truncate max-w-[240px] sm:max-w-xs">{fileName}</p>
+                    <p className="text-slate-500 text-xs mt-0.5">
+                      {fileSize ? `${fileSize} • ` : ''}
+                      <span className="text-blue-700 font-semibold underline">Click to change</span>
+                    </p>
                   </div>
                 </div>
               ) : (
                 <>
-                  <Upload className="w-8 h-8 text-gray-500 mx-auto mb-3" />
-                  <p className="text-gray-300 font-medium">Drop your file here or click to browse</p>
-                  <p className="text-gray-500 text-sm mt-1">PDF, DOCX, TXT, or Image files</p>
+                  <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-500 mx-auto mb-3 flex items-center justify-center border border-slate-200">
+                    <Upload className="w-5 h-5 text-slate-600" />
+                  </div>
+                  <p className="text-slate-800 font-semibold text-sm">Drop your document here, or <span className="text-[#0F2942] underline">browse files</span></p>
+                  <p className="text-slate-500 text-xs mt-1">Supports PDF, DOCX, TXT, or Image files</p>
                 </>
               )}
             </div>
           </div>
 
           {/* Print Settings */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-6">
-            <label className="flex items-center gap-2 text-white font-medium">
-              <Printer className="w-4 h-4 text-indigo-400" />
-              Print Settings
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+            <label className="flex items-center gap-2 text-slate-900 font-bold text-sm">
+              <span className="w-7 h-7 rounded-lg bg-blue-50 text-[#0F2942] flex items-center justify-center border border-blue-100">
+                <Printer className="w-4 h-4" />
+              </span>
+              Print Configuration
             </label>
 
             {/* Page Count */}
             <div>
-              <p className="text-gray-400 text-sm mb-2">Number of Pages</p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-slate-700 text-xs font-semibold">Number of Pages</p>
+                <span className="text-slate-400 text-[11px]">Enter total pages in your document</span>
+              </div>
               <div className="flex items-center gap-3">
                 <button
+                  type="button"
                   onClick={() => setPageCount(Math.max(1, pageCount - 1))}
-                  className="w-9 h-9 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-center text-gray-300 hover:bg-gray-700 transition-colors"
+                  className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-700 hover:bg-slate-200 active:scale-95 transition-all"
                 >
                   <Minus className="w-4 h-4" />
                 </button>
@@ -226,11 +260,12 @@ export default function StudentOrderForm() {
                   type="number"
                   value={pageCount}
                   onChange={e => setPageCount(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-center focus:outline-none focus:border-indigo-500"
+                  className="w-24 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold text-center focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-900/10 focus:border-[#0F2942]"
                 />
                 <button
+                  type="button"
                   onClick={() => setPageCount(pageCount + 1)}
-                  className="w-9 h-9 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-center text-gray-300 hover:bg-gray-700 transition-colors"
+                  className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-700 hover:bg-slate-200 active:scale-95 transition-all"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -239,55 +274,85 @@ export default function StudentOrderForm() {
 
             {/* Print Type */}
             <div>
-              <p className="text-gray-400 text-sm mb-2">Print Type</p>
-              <div className="flex gap-3">
-                {[
-                  { value: 'bw', label: 'Black & White', price: '&#8377;2/page' },
-                  { value: 'color', label: 'Color', price: '&#8377;10/page' },
-                ].map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setPrintType(opt.value as 'bw' | 'color')}
-                    className={`flex-1 p-3 rounded-xl border text-left transition-all ${
-                      printType === opt.value ? 'border-indigo-500 bg-indigo-600/10' : 'border-gray-700 hover:border-gray-600'
-                    }`}
-                  >
-                    <p className={`font-medium text-sm ${printType === opt.value ? 'text-white' : 'text-gray-300'}`}>{opt.label}</p>
-                    <p className="text-gray-500 text-xs mt-0.5" dangerouslySetInnerHTML={{ __html: opt.price }} />
-                  </button>
-                ))}
+              <p className="text-slate-700 text-xs font-semibold mb-2">Color Mode</p>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPrintType('bw')}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                    printType === 'bw'
+                      ? 'border-[#0F2942] bg-blue-50/30 ring-1 ring-[#0F2942]'
+                      : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <p className={`font-bold text-sm ${printType === 'bw' ? 'text-slate-900' : 'text-slate-700'}`}>Black & White</p>
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-800">₹2/page</span>
+                  </div>
+                  <p className="text-slate-500 text-xs mt-1">Standard lecture notes & assignments</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPrintType('color')}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                    printType === 'color'
+                      ? 'border-[#0F2942] bg-amber-50/30 ring-1 ring-[#0F2942]'
+                      : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <p className={`font-bold text-sm ${printType === 'color' ? 'text-slate-900' : 'text-slate-700'}`}>Full Color</p>
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">₹10/page</span>
+                  </div>
+                  <p className="text-slate-500 text-xs mt-1">Diagrams, certificates & presentations</p>
+                </button>
               </div>
             </div>
 
             {/* Sides */}
             <div>
-              <p className="text-gray-400 text-sm mb-2">Sides</p>
-              <div className="flex gap-3">
-                {[
-                  { value: 'single', label: 'Single-Sided', note: 'Standard pricing' },
-                  { value: 'double', label: 'Double-Sided', note: '15% discount' },
-                ].map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setSides(opt.value as 'single' | 'double')}
-                    className={`flex-1 p-3 rounded-xl border text-left transition-all ${
-                      sides === opt.value ? 'border-indigo-500 bg-indigo-600/10' : 'border-gray-700 hover:border-gray-600'
-                    }`}
-                  >
-                    <p className={`font-medium text-sm ${sides === opt.value ? 'text-white' : 'text-gray-300'}`}>{opt.label}</p>
-                    <p className={`text-xs mt-0.5 ${opt.value === 'double' ? 'text-green-400' : 'text-gray-500'}`}>{opt.note}</p>
-                  </button>
-                ))}
+              <p className="text-slate-700 text-xs font-semibold mb-2">Print Layout</p>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSides('single')}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                    sides === 'single'
+                      ? 'border-[#0F2942] bg-blue-50/30 ring-1 ring-[#0F2942]'
+                      : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
+                  }`}
+                >
+                  <p className={`font-bold text-sm ${sides === 'single' ? 'text-slate-900' : 'text-slate-700'}`}>Single-Sided</p>
+                  <p className="text-slate-500 text-xs mt-0.5">Standard single page sheets</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSides('double')}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                    sides === 'double'
+                      ? 'border-[#0F2942] bg-emerald-50/40 ring-1 ring-[#0F2942]'
+                      : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <p className={`font-bold text-sm ${sides === 'double' ? 'text-slate-900' : 'text-slate-700'}`}>Double-Sided</p>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800">15% OFF</span>
+                  </div>
+                  <p className="text-emerald-700 text-xs mt-0.5 font-medium">Eco-friendly & saves paper</p>
+                </button>
               </div>
             </div>
 
             {/* Copies */}
             <div>
-              <p className="text-gray-400 text-sm mb-2">Number of Copies</p>
+              <p className="text-slate-700 text-xs font-semibold mb-2">Number of Copies</p>
               <div className="flex items-center gap-3">
                 <button
+                  type="button"
                   onClick={() => setCopies(Math.max(1, copies - 1))}
-                  className="w-9 h-9 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-center text-gray-300 hover:bg-gray-700 transition-colors"
+                  className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-700 hover:bg-slate-200 active:scale-95 transition-all"
                 >
                   <Minus className="w-4 h-4" />
                 </button>
@@ -295,11 +360,12 @@ export default function StudentOrderForm() {
                   type="number"
                   value={copies}
                   onChange={e => setCopies(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-center focus:outline-none focus:border-indigo-500"
+                  className="w-24 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold text-center focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-900/10 focus:border-[#0F2942]"
                 />
                 <button
+                  type="button"
                   onClick={() => setCopies(copies + 1)}
-                  className="w-9 h-9 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-center text-gray-300 hover:bg-gray-700 transition-colors"
+                  className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-700 hover:bg-slate-200 active:scale-95 transition-all"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -308,23 +374,22 @@ export default function StudentOrderForm() {
           </div>
 
           {/* Cost Summary */}
-          <div className="bg-gray-900 border border-indigo-500/30 rounded-2xl p-6">
-            <h3 className="text-white font-medium mb-4">Cost Summary</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between text-gray-400">
-                <span>{pageCount} pages × &#8377;{baseRate} × {copies} copies</span>
-                <span>&#8377;{(pageCount * baseRate * copies).toFixed(2)}</span>
+          <div className="bg-gradient-to-br from-slate-900 to-[#0F2942] text-white rounded-2xl p-6 shadow-md">
+            <div className="flex items-center justify-between border-b border-slate-700/80 pb-3 mb-3">
+              <span className="font-bold text-sm tracking-wide text-slate-200 uppercase">Estimated Total</span>
+              <span className="text-2xl sm:text-3xl font-extrabold text-amber-300">₹{totalCost.toFixed(2)}</span>
+            </div>
+            <div className="space-y-1.5 text-xs text-slate-300">
+              <div className="flex justify-between">
+                <span>Base rate ({pageCount} pages × ₹{baseRate} × {copies} copy)</span>
+                <span>₹{(pageCount * baseRate * copies).toFixed(2)}</span>
               </div>
               {sides === 'double' && (
-                <div className="flex justify-between text-green-400">
-                  <span>Double-sided discount (15%)</span>
-                  <span>-&#8377;{(pageCount * baseRate * copies * 0.15).toFixed(2)}</span>
+                <div className="flex justify-between text-emerald-300 font-semibold">
+                  <span>Double-sided 15% discount applied</span>
+                  <span>-₹{(pageCount * baseRate * copies * 0.15).toFixed(2)}</span>
                 </div>
               )}
-              <div className="border-t border-gray-700 pt-2 mt-2 flex justify-between">
-                <span className="text-white font-bold text-base">Total</span>
-                <span className="text-indigo-400 font-black text-xl">&#8377;{totalCost.toFixed(2)}</span>
-              </div>
             </div>
           </div>
 
@@ -332,10 +397,10 @@ export default function StudentOrderForm() {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-lg"
+            className="w-full bg-[#0F2942] hover:bg-[#1A365D] active:scale-[0.99] disabled:opacity-50 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all text-base"
           >
-            {loading ? 'Processing...' : 'Proceed to Payment'}
-            {!loading && <ChevronRight className="w-5 h-5" />}
+            {loading ? 'Processing Order...' : 'Proceed to Digital Payment'}
+            {!loading && <ChevronRight className="w-5 h-5 text-amber-300" />}
           </button>
         </div>
       </div>

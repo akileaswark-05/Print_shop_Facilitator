@@ -11,7 +11,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('order');
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-slate-50 to-blue-50/30 text-slate-800">
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
       <main>
         {activeTab === 'order' && <StudentOrderForm />}
